@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3099"
+    volumes:
+      - railway-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3099
+      - DB_PATH=/app/data/railway.db
+    restart: unless-stopped
+
+volumes:
+  railway-data:
