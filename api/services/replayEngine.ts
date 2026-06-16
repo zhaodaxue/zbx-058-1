@@ -1,11 +1,25 @@
 import { StepLogService } from "./stepLog.js";
-import type { ReplayState, Session } from "../../shared/types.js";
+import { getDb, queryAll } from "../db/database.js";
+import type { ReplayState, Session, Train } from "../../shared/types.js";
 
 export class ReplayEngineService {
   private stepLogService: StepLogService;
+  private trainsCache: Train[] | null = null;
 
   constructor(stepLogService: StepLogService) {
     this.stepLogService = stepLogService;
+  }
+
+  private async getTrains(): Promise<Train[]> {
+    if (this.trainsCache) return this.trainsCache;
+    const db = await getDb();
+    this.trainsCache = queryAll(db, "SELECT * FROM trains") as unknown as Train[];
+    return this.trainsCache;
+  }
+
+  private getTrainName(trains: Train[], id: string): string {
+    const t = trains.find((tr) => tr.id === id);
+    return t ? t.name : id;
   }
 
   async getReplayData(sessionId: string): Promise<{ states: ReplayState[]; session: Session | null }> {
@@ -13,10 +27,11 @@ export class ReplayEngineService {
     if (!session) return { states: [], session: null };
 
     const steps = await this.stepLogService.getSteps(sessionId);
+    const trains = await this.getTrains();
     const states: ReplayState[] = [];
 
     for (const step of steps) {
-      const decisionDescription = this.buildDecisionDescription(step.yields, step.cannotPass);
+      const decisionDescription = this.buildDecisionDescription(step.yields, step.cannotPass, trains);
 
       states.push({
         stepIndex: step.stepIndex,
@@ -33,7 +48,8 @@ export class ReplayEngineService {
 
   private buildDecisionDescription(
     yields: Array<{ trainId: string; reason: string }>,
-    cannotPass: string[]
+    cannotPass: string[],
+    trains: Train[]
   ): string {
     const parts: string[] = [];
 
@@ -46,7 +62,8 @@ export class ReplayEngineService {
     }
 
     if (cannotPass.length > 0) {
-      parts.push(`列车 ${cannotPass.join("、")} 无法会让`);
+      const names = cannotPass.map((id) => this.getTrainName(trains, id));
+      parts.push(`${names.join("、")} 无法会让`);
     }
 
     return parts.join("；");

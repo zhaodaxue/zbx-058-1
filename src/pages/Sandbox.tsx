@@ -99,6 +99,7 @@ export default function Sandbox() {
             cannotPass={cannotPass}
             stepCount={stepCount}
             sections={sections}
+            trains={trains}
           />
         </div>
       </div>

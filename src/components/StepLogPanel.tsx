@@ -1,10 +1,11 @@
-import type { TrackSection, YieldDecision } from "../../shared/types";
+import type { TrackSection, YieldDecision, Train } from "../../shared/types";
 
 interface StepLogPanelProps {
   yields: YieldDecision[];
   cannotPass: string[];
   stepCount: number;
   sections: TrackSection[];
+  trains: Train[];
 }
 
 export default function StepLogPanel({
@@ -12,7 +13,12 @@ export default function StepLogPanel({
   cannotPass,
   stepCount,
   sections,
+  trains,
 }: StepLogPanelProps) {
+  const getTrainName = (id: string) => {
+    const t = trains.find((tr) => tr.id === id);
+    return t ? t.name : id;
+  };
   return (
     <div className="w-72 flex-shrink-0">
       <div className="bg-rail-dark/50 border border-rail-steel/30 rounded-xl p-4 backdrop-blur-sm">
@@ -45,7 +51,7 @@ export default function StepLogPanel({
                     s.occupiedBy ? "text-rail-green" : "text-rail-steel/50"
                   }`}
                 >
-                  {s.occupiedBy || "空闲"}
+                  {s.occupiedBy ? getTrainName(s.occupiedBy) : "空闲"}
                 </span>
               </div>
             ))}
@@ -81,7 +87,7 @@ export default function StepLogPanel({
               无法会让
             </div>
             <div className="text-xs font-body text-rail-red/80">
-              列车 {cannotPass.join("、")} 无法找到空闲侧线
+              {cannotPass.map(getTrainName).join("、")} 无法找到空闲侧线
             </div>
           </div>
         )}

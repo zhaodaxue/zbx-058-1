@@ -84,9 +84,16 @@ export const useSandboxStore = create<SandboxState>((set, get) => ({
           yields: data.yields,
           cannotPass: data.cannotPass,
           stepCount: data.stepIndex + 1,
+          error: null,
         });
       } else {
-        set({ error: data.message });
+        set({
+          sections: data.sections ?? get().sections,
+          yields: data.yields ?? [],
+          cannotPass: data.cannotPass ?? [],
+          stepCount: data.stepIndex !== undefined ? data.stepIndex + 1 : get().stepCount,
+          error: data.message,
+        });
       }
     } catch (e) {
       set({ error: "提交步骤失败" });
@@ -118,9 +125,16 @@ export const useSandboxStore = create<SandboxState>((set, get) => ({
           yields: data.yields,
           cannotPass: data.cannotPass,
           stepCount: data.stepIndex + 1,
+          error: null,
         });
       } else {
-        set({ error: data.message });
+        set({
+          sections: data.sections ?? get().sections,
+          yields: data.yields ?? [],
+          cannotPass: data.cannotPass ?? [],
+          stepCount: data.stepIndex !== undefined ? data.stepIndex + 1 : get().stepCount,
+          error: data.message,
+        });
       }
     } catch (e) {
       set({ error: "提交步骤失败" });

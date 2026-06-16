@@ -33,9 +33,26 @@ router.post("/submit", async (req: Request, res: Response) => {
     const yieldResult = yieldService.prepareYieldForPlace(trainId, targetSection);
 
     if (!yieldResult.canPlace) {
+      const currentSections = sectionService.getSections();
+      const hasDecision = yieldResult.cannotPass.length > 0 || yieldResult.yields.length > 0;
+
+      let finalStepIndex = session.stepCount;
+      if (hasDecision) {
+        const stepLog = await stepLogService.logStep(
+          sessionId,
+          action,
+          trainId,
+          targetSection,
+          currentSections,
+          yieldResult.yields,
+          yieldResult.cannotPass
+        );
+        finalStepIndex = stepLog.stepIndex;
+      }
+
       res.json({
-        stepIndex: session.stepCount,
-        sections: sectionService.getSections(),
+        stepIndex: finalStepIndex,
+        sections: currentSections,
         yields: yieldResult.yields,
         cannotPass: yieldResult.cannotPass,
         success: false,
